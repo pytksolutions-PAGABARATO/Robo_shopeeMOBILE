@@ -1,0 +1,12 @@
+# Ignorar um arquivo JSON específico com senhas
+cache_envios_pagabarato.json
+config_pagabarato.json
+palavras_chave_pagabarato.json
+
+redes_sociais_pagabarato.json
+
+# Ignorar todos os arquivos JSON dentro de uma pasta específica
+/config/*.json
+
+# Ignorar arquivos de variáveis de ambiente (prática recomendada)
+.env

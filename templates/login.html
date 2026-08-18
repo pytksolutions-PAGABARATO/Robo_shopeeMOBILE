@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>PagaBarato — Entrar</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="tela-login">
+  <form class="cartao-login" method="POST" action="/login">
+    <div class="marca-login">
+      <span class="logo-emoji">🛒</span>
+      <h1>PagaBarato</h1>
+      <p>Painel do robô</p>
+    </div>
+    {% if erro %}
+      <div class="aviso-erro">{{ erro }}</div>
+    {% endif %}
+    <label for="senha">Senha do painel</label>
+    <input type="password" id="senha" name="senha" autofocus required autocomplete="current-password">
+    <button type="submit">Entrar</button>
+  </form>
+</body>
+</html>

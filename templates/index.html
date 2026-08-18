@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>PagaBarato — Painel</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/static/icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-marca">🛒 <strong>PagaBarato</strong></div>
+  <div class="topo-status">
+    <span id="bolha-status" class="bolha-status parado"></span>
+    <span id="texto-status">parado</span>
+  </div>
+  <a href="/logout" class="botao-sair" title="Sair">⎋</a>
+</header>
+
+<nav class="abas-scroll" id="abas-scroll">
+  <button class="aba-botao ativo" data-aba="config">⚙️ Config</button>
+  <button class="aba-botao" data-aba="busca">🔎 Busca</button>
+  <button class="aba-botao" data-aba="links">🔗 Links</button>
+  <button class="aba-botao" data-aba="manual">➕ Manual</button>
+  <button class="aba-botao" data-aba="redes">📢 Redes</button>
+  <button class="aba-botao" data-aba="agenda">⏰ Agenda</button>
+  <button class="aba-botao" data-aba="log">▶️ Log</button>
+</nav>
+
+<main id="conteudo">
+
+  <!-- ===================== CONFIGURAÇÃO ===================== -->
+  <section class="painel-aba" id="aba-config">
+    <h2>Credenciais Shopee</h2>
+    <label>App ID</label>
+    <input type="text" id="cfg-app-id" placeholder="Seu App ID da Shopee">
+    <label>App Secret</label>
+    <input type="password" id="cfg-app-secret" placeholder="Seu App Secret">
+
+    <h2>Webhooks de destino</h2>
+    <p class="dica">Marque quais estão ativos — pode usar vários ao mesmo tempo.</p>
+    <div id="lista-webhooks"></div>
+
+    <h2>Limite de envios por execução</h2>
+    <input type="number" id="cfg-limite-envios" min="0" placeholder="0 = sem limite">
+    <p class="dica">Protege seus créditos do Make.com/n8n/etc.</p>
+
+    <div class="linha-botoes">
+      <button class="botao-primario" onclick="salvarGeral()">💾 Salvar Configuração</button>
+      <button class="botao-secundario" onclick="testarWebhooks()">🔌 Testar Webhooks</button>
+    </div>
+    <div id="resultado-teste-webhook" class="caixa-resultado"></div>
+  </section>
+
+  <!-- ===================== BUSCA ===================== -->
+  <section class="painel-aba oculto" id="aba-busca">
+    <h2>Palavras-chave</h2>
+    <p class="dica">Uma por linha.</p>
+    <textarea id="busca-palavras" rows="8" placeholder="fone bluetooth&#10;luminária led&#10;..."></textarea>
+
+    <label>Ordenar resultados por</label>
+    <select id="busca-ordenacao">
+      <option>Maior comissão (recomendado)</option>
+      <option>Mais vendidos</option>
+      <option>Relevância</option>
+      <option>Maior preço</option>
+      <option>Menor preço</option>
+    </select>
+
+    <label>Produtos por palavra-chave</label>
+    <input type="number" id="busca-limite" min="1" max="100">
+
+    <label>Máx. de páginas por palavra-chave</label>
+    <input type="number" id="busca-max-paginas" min="1" max="25">
+
+    <label class="linha-check">
+      <input type="checkbox" id="busca-paginacao-completa">
+      Puxar TODAS as páginas disponíveis (ignora o campo acima)
+    </label>
+
+    <button class="botao-primario" onclick="salvarBusca()">💾 Salvar Palavras-chave</button>
+
+    <h2>🤖 Gerar palavras-chave com IA</h2>
+    <p class="dica">Escolha uma categoria e a IA sugere palavras — elas são adicionadas na caixa acima pra você revisar antes de salvar.</p>
+    <label>Categoria</label>
+    <select id="ia-categoria"></select>
+    <label>Quantas gerar</label>
+    <input type="number" id="ia-quantidade" min="3" max="30" value="8">
+    <button class="botao-secundario" onclick="gerarPalavrasIA()">🤖 Gerar com IA</button>
+    <div id="ia-status" class="dica"></div>
+  </section>
+
+  <!-- ===================== LINKS ===================== -->
+  <section class="painel-aba oculto" id="aba-links">
+    <h2>Links de produtos</h2>
+    <p class="dica">Cole aqui os links (um por linha) — comuns ou encurtados (s.shopee.com.br/...). O robô resolve sozinho.</p>
+    <textarea id="links-texto" rows="10" placeholder="https://shopee.com.br/produto...&#10;https://s.shopee.com.br/..."></textarea>
+    <button class="botao-primario" onclick="salvarLinks()">💾 Salvar Links</button>
+  </section>
+
+  <!-- ===================== MANUAL / EXTRAS ===================== -->
+  <section class="painel-aba oculto" id="aba-manual">
+    <h2>Produtos manuais (avançado)</h2>
+    <p class="dica">Opcional — produtos forçados na planilha além dos encontrados automaticamente.</p>
+    <div id="lista-extras" class="lista-cartoes"></div>
+    <button class="botao-secundario" onclick="abrirModalExtra()">➕ Adicionar produto</button>
+  </section>
+
+  <!-- ===================== REDES SOCIAIS ===================== -->
+  <section class="painel-aba oculto" id="aba-redes">
+    <h2>📢 Telegram</h2>
+    <label class="linha-check"><input type="checkbox" id="tg-ativo"> Ativar postagem no Telegram</label>
+    <label>Token do Bot</label>
+    <input type="password" id="tg-token" placeholder="Token do @BotFather">
+    <div id="lista-telegram" class="lista-cartoes"></div>
+    <button class="botao-secundario" onclick="abrirModalDestino('telegram')">➕ Adicionar grupo/canal</button>
+
+    <h2>📘 Facebook</h2>
+    <label class="linha-check"><input type="checkbox" id="fb-ativo"> Ativar postagem no Facebook</label>
+    <div id="lista-facebook" class="lista-cartoes"></div>
+    <button class="botao-secundario" onclick="abrirModalDestino('facebook')">➕ Adicionar página</button>
+
+    <h2>📸 Instagram</h2>
+    <label class="linha-check"><input type="checkbox" id="ig-ativo"> Ativar postagem no Instagram</label>
+    <div id="lista-instagram" class="lista-cartoes"></div>
+    <button class="botao-secundario" onclick="abrirModalDestino('instagram')">➕ Adicionar conta</button>
+
+    <h2>🤖 Texto das postagens</h2>
+    <label>Token Groq (opcional, IA)</label>
+    <input type="password" id="groq-token" placeholder="console.groq.com">
+    <label>Máx. de postagens por execução</label>
+    <input type="number" id="limite-postagens" min="0" max="100">
+
+    <button class="botao-primario" onclick="salvarRedes()">💾 Salvar Redes Sociais</button>
+  </section>
+
+  <!-- ===================== AGENDAMENTO ===================== -->
+  <section class="painel-aba oculto" id="aba-agenda">
+    <h2>Horários automáticos</h2>
+    <p class="dica">Um por linha, formato HH:MM. Ex: 08:00. Só dispara enquanto o servidor estiver ativo — se usar hospedagem gratuita que "dorme", veja o README sobre cron externo.</p>
+    <textarea id="agenda-horarios" rows="6" placeholder="08:00&#10;14:00&#10;20:00"></textarea>
+    <div class="linha-botoes">
+      <button class="botao-secundario" onclick="salvarAgenda()">💾 Salvar Horários</button>
+      <button class="botao-primario" id="botao-toggle-agenda" onclick="alternarAgenda()">▶️ Ativar Agendamento</button>
+    </div>
+    <p id="status-agenda" class="dica">Status: inativo</p>
+  </section>
+
+  <!-- ===================== LOG / EXECUTAR ===================== -->
+  <section class="painel-aba oculto" id="aba-log">
+    <div class="linha-botoes">
+      <button class="botao-primario" id="botao-executar" onclick="executarRobo()">▶️ Executar Agora</button>
+      <button class="botao-perigo" id="botao-parar" onclick="pararRobo()" disabled>⏹ Parar</button>
+      <button class="botao-secundario" onclick="limparLog()">🧹 Limpar</button>
+    </div>
+    <pre id="caixa-log" class="caixa-log"></pre>
+  </section>
+
+</main>
+
+<!-- Modal genérico para adicionar produto extra / destino de rede social -->
+<div id="modal-fundo" class="modal-fundo oculto">
+  <div class="modal-caixa">
+    <h3 id="modal-titulo">Adicionar</h3>
+    <div id="modal-campos"></div>
+    <div class="linha-botoes">
+      <button class="botao-primario" id="modal-confirmar">Adicionar</button>
+      <button class="botao-secundario" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
